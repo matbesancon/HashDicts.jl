@@ -1,5 +1,8 @@
 module HashDicts
 
-greet() = print("Hello World!")
+export HashDict
+
+include("bucket.jl")
+include("hashdict.jl")
 
 end # module
