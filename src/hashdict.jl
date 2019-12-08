@@ -30,9 +30,24 @@ function HashDict(items::Vector{Pair{K, V}}; base_size = 1024) where {K, V}
     return d
 end
 
+function HashDict(items::Vararg{Pair{K, V}}; base_size = 1024) where {K, V}
+    d = HashDict{K, V}(base_size = base_size)
+    for (k, v) in items
+        d[k] = v
+    end
+    return d
+end
+
 function Base.setindex!(d::HashDict{K, V}, value::V, key::K) where {K, V}
     key_hash = hash(key)
     idx = key_hash % d.base_size
     bucket = d.buckets[idx]
     return bucket[key] = value
+end
+
+function Base.getindex(d::HashDict{K, V}, key::K) where {K, V}
+    key_hash = hash(key)
+    idx = key_hash % d.base_size
+    bucket = d.buckets[idx]
+    return bucket[key]
 end

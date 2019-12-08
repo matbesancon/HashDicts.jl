@@ -6,6 +6,8 @@ import HashDicts
 @testset "HashDict construction" begin
     d = HashDict([("A", 1), ("B", 2)])
     d2 = HashDict("A" => 1, "B" => 2)
+    @test d["A"] == d2["A"] == 1
+    @test d["B"] == d2["B"] == 2
 end
 
 @testset "Bucket construction and iteration" begin
