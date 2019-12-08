@@ -34,3 +34,32 @@ end
     @test d.number_entries == 2
     @test_throws KeyError d["T"]
 end
+
+@testset "Iteration over HashDict" begin
+    d = HashDict{Int,Int}()
+    for value in d
+    end
+    d[1] = 42
+    for (k, v) in d
+        @test k == 1
+        @test v == 42
+    end
+    d[2] = 42
+    for (k, v) in d
+        @test k < 3
+        @test v == 42
+    end
+end
+
+@testset "Displaying HashDicts" begin
+    d = HashDict(2 => "", 3 => "hi")
+    io = IOBuffer()
+    show(io, d)
+    result_str = String(take!(io))
+    @test result_str == """
+HashDict{Int64,String} with 2 entries:
+  2 => ""
+  3 => "hi"
+"""
+
+end

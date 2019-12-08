@@ -71,3 +71,50 @@ end
 function Base.length(d::HashDict)
     return d.number_entries
 end
+
+function Base.show(io::IO, d::HashDict{K, V}) where {K, V}
+    show(io, typeof(d))
+    write(io, " with $(d.number_entries) entries:\n")
+    for (k, v) in d
+        Base.write(io, "  ")
+        Base.show(io, k)
+        Base.write(io, " => ")
+        Base.show(io, v)       
+        Base.write(io, "\n")
+    end
+    return nothing
+end
+
+function Base.iterate(d::HashDict)
+    if length(d) == 0
+        return nothing
+    end
+    res = nothing
+    bucket_idx = 1
+    while res === nothing && bucket_idx <= length(d.buckets)
+        res = iterate(d.buckets[bucket_idx])
+        if res === nothing
+            bucket_idx += 1
+            continue
+        else
+            (value, bucket_state) = res
+            return (value, (bucket_idx, bucket_state))
+        end
+    end
+    return nothing
+end
+
+function Base.iterate(d::HashDict, state::Tuple{Int, Int})
+    (bucket_idx, bucket_state) = state
+    current_bucket = d.buckets[bucket_idx]
+    res = iterate(d.buckets[bucket_idx], bucket_state)
+    while res === nothing
+        bucket_idx += 1
+        if bucket_idx > length(d.buckets)
+            return nothing
+        end
+        res = iterate(d.buckets[bucket_idx])        
+    end
+    (value, next_bucket_state) = res
+    return (value, (bucket_idx, next_bucket_state))    
+end
