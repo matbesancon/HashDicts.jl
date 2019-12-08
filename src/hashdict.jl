@@ -1,10 +1,10 @@
 
 """
-    HashDict{K, V}
+    HashDict{K, V} <: AbstractDict{K, V}
 
 Dict-like behavior, stores key-value pairs by key hash.
 """
-mutable struct HashDict{K, V}
+mutable struct HashDict{K, V} <: AbstractDict{K, V}
     buckets::Vector{Bucket{K, V}}
     base_size::Int
     number_entries::Int
