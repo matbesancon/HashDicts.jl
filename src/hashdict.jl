@@ -22,20 +22,12 @@ function HashDict(items::Vector{Tuple{K, V}}; base_size = 1024) where {K, V}
     return d
 end
 
-function HashDict(items::Vararg{Tuple{K, V}}; base_size = 1024) where {K, V}
-    return HashDict(collect(items), base_size = base_size)
-end
-
 function HashDict(items::Vector{Pair{K, V}}; base_size = 1024) where {K, V}
     d = HashDict{K, V}(base_size = base_size)
     for (k, v) in items
         d[k] = v
     end
     return d
-end
-
-function HashDict(items::Vararg{Pair{K, V}}; base_size = 1024) where {K, V}
-    return HashDict(collect(items), base_size = base_size)
 end
 
 function Base.setindex!(d::HashDict{K, V}, value::V, key::K) where {K, V}
