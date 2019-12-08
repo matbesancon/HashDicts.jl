@@ -45,6 +45,24 @@ function Base.getindex(b::Bucket{K, V}, key::K) where {K, V}
     throw(KeyError("Key $key not in collection."))
 end
 
+function Base.get(b::Bucket{K, V}, key::K, default::V) where {K, V}
+    for (k, v) in b.items
+        if k == key
+            return v
+        end
+    end
+    return default
+end
+
+function Base.haskey(b::Bucket{K, V}, key::K) where {K, V}
+    for (k, v) in b.items
+        if k == key
+            return true
+        end
+    end
+    return false
+end
+
 function Base.delete!(b::Bucket{K, V}, key::K) where {K, V}
     for (i, tup) in enumerate(b.items)
         (k, v) = tup

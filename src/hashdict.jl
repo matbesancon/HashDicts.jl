@@ -118,3 +118,17 @@ function Base.iterate(d::HashDict, state::Tuple{Int, Int})
     (value, next_bucket_state) = res
     return (value, (bucket_idx, next_bucket_state))    
 end
+
+function Base.get(d::HashDict{K, V}, key::K, default::V) where {K, V}
+    key_hash = hash(key)
+    idx = key_hash % d.base_size
+    bucket = d.buckets[idx]
+    return get(bucket, key, default)    
+end
+
+function Base.haskey(d::HashDict{K, V}, key::K) where {K, V}
+    key_hash = hash(key)
+    idx = key_hash % d.base_size
+    bucket = d.buckets[idx]
+    return haskey(bucket, key)    
+end

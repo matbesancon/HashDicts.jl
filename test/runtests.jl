@@ -49,6 +49,36 @@ end
         @test k < 3
         @test v == 42
     end
+    d2 = Dict{Int, UInt8}()
+    idxs = rand(Int, 100)
+    vals = rand(UInt8, 100)
+    for i in eachindex(idxs)
+        d2[idxs[i]] = vals[i]
+        @test haskey(d2, idxs[i])
+    end
+    for (k, v) in d2
+        idx = findfirst(==(k), idxs)
+        @test idx !== nothing
+        d2[idxs[idx]] = vals[idx]
+    end
+    d3 = Dict{Int, Int}()
+    idxs = rand(Int, 100)
+    vals = abs.(rand(Int, 100))
+    for i in eachindex(idxs)
+        d3[idxs[i]] = vals[i]
+    end
+    for (k, v) in d3
+        idx = findfirst(==(k), idxs)
+        @test idx !== nothing
+        d3[idxs[idx]] = vals[idx]
+        @test get(d3, idxs[idx], -1) != -1
+    end
+
+    # deleting and default
+    for key in idxs[1:10]
+        delete!(d3, key)
+        @test get(d3, key, -1) == -1
+    end
 end
 
 @testset "Displaying HashDicts" begin
