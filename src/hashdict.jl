@@ -68,6 +68,32 @@ function Base.delete!(d::HashDict{K, V}, key::K) where {K, V}
     return d
 end
 
+"""
+    replace_for_delete!(d::HashDict{K, V}, key::K, value::V, former_size::Int)
+
+Delete a (key, value) pair from its former location and re-add it to the `HashDict`.
+"""
+function replace_for_delete!(d::HashDict{K, V}, key::K, value::V, former_size::Int) where {K, V}
+    key_hash = hash(key)
+    new_idx = key_hash % d.base_size
+    new_bucket = d.buckets[new_idx]
+    old_idx = key_hash % former_size
+    old_bucket = d.buckets[old_idx]
+    found = delete!(old_bucket, key)
+    if found
+        new_bucket[key] = value
+    end
+    return d
+end
+
+function Base.empty!(d::HashDict)
+    for bucket in d.buckets
+        empty!(bucket)
+    end
+    d.number_entries = 0
+    return d
+end
+
 function Base.length(d::HashDict)
     return d.number_entries
 end
@@ -131,4 +157,29 @@ function Base.haskey(d::HashDict{K, V}, key::K) where {K, V}
     idx = key_hash % d.base_size
     bucket = d.buckets[idx]
     return haskey(bucket, key)    
+end
+
+"""
+Maximum average number of items per bucket.
+Resizing is performed when this average is reached.
+"""
+const LOAD_FACTOR = 3
+
+"""
+    Base.resize!(d::HashDict)
+
+Double the size of the data underlying the hash dict.
+Called when inserting an item goes above `LOAD_FACTOR`.
+"""
+function Base.resize!(d::HashDict{K, V}) where {K, V}
+    l = length(d.buckets)
+    resize!(d.buckets, 2l)
+    for idx in l+1:2l
+        d.buckets[idx] = Bucket{K, V}([])
+    end
+    d.base_size *= 2
+    for (k, v) in d
+        replace_for_delete!(d, k, v, l)
+    end
+    return d
 end

@@ -1,6 +1,4 @@
 
-# iterate(iter [, state]) -> Union{Nothing, Tuple{Any, Any}}
-
 struct Bucket{K, V}
     items::Vector{Tuple{K, V}}
 end
@@ -74,3 +72,7 @@ function Base.delete!(b::Bucket{K, V}, key::K) where {K, V}
     return false
 end
 
+function Base.empty!(b::Bucket)
+    empty!(b.items)
+    return nothing
+end

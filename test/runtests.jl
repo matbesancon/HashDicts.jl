@@ -81,6 +81,17 @@ end
     end
 end
 
+@testset "Emptying HashDict" begin
+    d = HashDict([("A", 1), ("B", 2)])
+    @test length(d) == 2
+    empty!(d)   
+    @test length(d) == 0
+    for (k, v) in d
+        @test v > 5
+    end
+end
+
+
 @testset "Displaying HashDicts" begin
     d = HashDict(2 => "", 3 => "hi")
     io = IOBuffer()
@@ -91,5 +102,21 @@ HashDict{Int64,String} with 2 entries:
   2 => ""
   3 => "hi"
 """
+end
 
+@testset "Resizing does not affect HashDict" begin
+    d = HashDict(2 => "", 3 => "hi")
+    initial_size = d.base_size
+    @test length(d) == 2
+    for (k, v) in d
+        @test 2 <= k <= 3
+        @test 0 <= length(v) <= 2
+    end
+    resize!(d)
+    @test length(d) == 2
+    for (k, v) in d
+        @test 2 <= k <= 3
+        @test 0 <= length(v) <= 2
+    end
+    @test d.base_size == 2 * initial_size
 end
