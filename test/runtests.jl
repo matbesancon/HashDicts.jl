@@ -106,7 +106,7 @@ end
 
 @testset "Resizing does not affect HashDict" begin
     d = HashDict(2 => "", 3 => "hi")
-    initial_size = d.base_size
+    initial_size = length(d.buckets)
     @test length(d) == 2
     for (k, v) in d
         @test 2 <= k <= 3
@@ -118,5 +118,33 @@ end
         @test 2 <= k <= 3
         @test 0 <= length(v) <= 2
     end
-    @test d.base_size == 2 * initial_size
+    @test length(d.buckets) == 2 * initial_size
+end
+
+@testset "Adding elements causes resize" begin
+    d = HashDict{Int, String}(base_size = 10)
+    @test length(d.buckets) == 10
+    for i in 1:10:301
+        d[i] = string(i)
+    end
+    @test length(d.buckets) == 20
+    for i in 1:60
+        d[i+301] = string(i)
+    end
+    @test length(d.buckets) == 40
+end
+
+@testset "Allocating capacity avoids automatic resize!" begin
+    d = HashDict{Int, String}(base_size = 10)
+    @test length(d.buckets) == 10
+    for i in 1:10:301
+        d[i] = string(i)
+    end
+    @test length(d.buckets) == 20
+    resize!(d, 15)
+    @test length(d.buckets) == 35
+    for i in 1:60
+        d[i+301] = string(i)
+    end
+    @test length(d.buckets) == 35
 end

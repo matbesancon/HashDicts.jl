@@ -6,13 +6,12 @@ Dict-like behavior, stores key-value pairs by key hash.
 """
 mutable struct HashDict{K, V} <: AbstractDict{K, V}
     buckets::Vector{Bucket{K, V}}
-    base_size::Int
     number_entries::Int
 end
 
 function HashDict{K, V}(; base_size::Int = 1024) where {K, V}
     buckets = [Bucket{K, V}([]) for _ in 1:base_size]
-    return HashDict{K, V}(buckets, base_size, 0)
+    return HashDict{K, V}(buckets, 0)
 end
 
 function HashDict(items::Vector{Tuple{K, V}}; base_size = 1024) where {K, V}
@@ -40,27 +39,24 @@ function HashDict(items::Vararg{Pair{K, V}}; base_size = 1024) where {K, V}
 end
 
 function Base.setindex!(d::HashDict{K, V}, value::V, key::K) where {K, V}
-    key_hash = hash(key)
-    idx = key_hash % d.base_size
-    bucket = d.buckets[idx]
+    bucket = find_bucket(d, key)
     (v, replaced) = setindex!(bucket, value, key)
     if !replaced
         d.number_entries += 1
+        if d.number_entries > LOAD_FACTOR * length(d.buckets)
+            resize!(d)
+        end
     end
     return v
 end
 
 function Base.getindex(d::HashDict{K, V}, key::K) where {K, V}
-    key_hash = hash(key)
-    idx = key_hash % d.base_size
-    bucket = d.buckets[idx]
+    bucket = find_bucket(d, key)
     return bucket[key]
 end
 
 function Base.delete!(d::HashDict{K, V}, key::K) where {K, V}
-    key_hash = hash(key)
-    idx = key_hash % d.base_size
-    bucket = d.buckets[idx]
+    bucket = find_bucket(d, key)
     found = delete!(bucket, key)
     if found
         d.number_entries -= 1
@@ -75,9 +71,9 @@ Delete a (key, value) pair from its former location and re-add it to the `HashDi
 """
 function replace_for_delete!(d::HashDict{K, V}, key::K, value::V, former_size::Int) where {K, V}
     key_hash = hash(key)
-    new_idx = key_hash % d.base_size
+    new_idx = 1 + key_hash % length(d.buckets)
     new_bucket = d.buckets[new_idx]
-    old_idx = key_hash % former_size
+    old_idx = 1 + key_hash % former_size
     old_bucket = d.buckets[old_idx]
     found = delete!(old_bucket, key)
     if found
@@ -146,17 +142,13 @@ function Base.iterate(d::HashDict, state::Tuple{Int, Int})
 end
 
 function Base.get(d::HashDict{K, V}, key::K, default::V) where {K, V}
-    key_hash = hash(key)
-    idx = key_hash % d.base_size
-    bucket = d.buckets[idx]
+    bucket = find_bucket(d, key)
     return get(bucket, key, default)    
 end
 
 function Base.haskey(d::HashDict{K, V}, key::K) where {K, V}
-    key_hash = hash(key)
-    idx = key_hash % d.base_size
-    bucket = d.buckets[idx]
-    return haskey(bucket, key)    
+    bucket = find_bucket(d, key)
+    return haskey(bucket, key)
 end
 
 """
@@ -177,9 +169,36 @@ function Base.resize!(d::HashDict{K, V}) where {K, V}
     for idx in l+1:2l
         d.buckets[idx] = Bucket{K, V}([])
     end
-    d.base_size *= 2
     for (k, v) in d
         replace_for_delete!(d, k, v, l)
     end
     return d
+end
+
+"""
+    Base.resize!(d::HashDict{K, V}, capacity::Integer)
+
+Resize a `HashDict` by adding a given capacity.
+Becomes a no-op if `capacity <= 0`.    
+"""
+function Base.resize!(d::HashDict{K, V}, capacity::Integer) where {K, V}
+    if capacity <= 0
+        return d
+    end
+    l = length(d.buckets)
+    new_size = l + capacity
+    resize!(d.buckets, new_size)
+    for idx in l+1:new_size
+        d.buckets[idx] = Bucket{K, V}([])
+    end
+    for (k, v) in d
+        replace_for_delete!(d, k, v, l)
+    end
+    return d
+end
+
+function find_bucket(d::HashDict{K}, key::K) where {K}
+    key_hash = hash(key)
+    idx = 1 + key_hash % length(d.buckets)
+    return d.buckets[idx]
 end
