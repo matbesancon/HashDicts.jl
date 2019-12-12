@@ -1,6 +1,6 @@
 
 struct Bucket{K, V}
-    items::Vector{Tuple{K, V}}
+    items::Vector{Pair{K, V}}
 end
 
 function Base.iterate(b::Bucket)
@@ -26,11 +26,11 @@ function Base.setindex!(b::Bucket{K, V}, value::V, key::K) where {K, V}
     for i in eachindex(b.items)
         (k, v) = b.items[i]
         if k == key
-            b.items[i] = (key, value)
+            b.items[i] = key => value
             return (value, true)
         end
     end
-    push!(b.items, (key, value))
+    push!(b.items, key => value)
     return (value, false)
 end
 
@@ -62,8 +62,8 @@ function Base.haskey(b::Bucket{K, V}, key::K) where {K, V}
 end
 
 function Base.delete!(b::Bucket{K, V}, key::K) where {K, V}
-    for (i, tup) in enumerate(b.items)
-        (k, v) = tup
+    for (i, pair) in enumerate(b.items)
+        (k, v) = pair
         if k == key
             deleteat!(b.items, i)
             return true

@@ -11,7 +11,7 @@ import HashDicts
 end
 
 @testset "Bucket construction and iteration" begin
-    b = HashDicts.Bucket([(1, 2), (2, 8)])
+    b = HashDicts.Bucket([Pair(1, 2), Pair(2, 8)])
     for (k, v) in b
         @test k == 1 || k == 2
         @test v == 2 || v == 8
@@ -147,4 +147,15 @@ end
         d[i+301] = string(i)
     end
     @test length(d.buckets) == 35
+end
+
+@testset "Collect eltype is Pair{K, V}" begin
+    d = HashDict(2 => "", 3 => "hi")
+    for p in d
+        p isa Pair
+    end
+    collected = collect(d)
+    sort!(collected, by=(p -> p.first))
+    @test collected[1] == (2 => "")
+    @test collected[2] == (3 => "hi")
 end
