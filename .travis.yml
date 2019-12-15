@@ -14,6 +14,7 @@ matrix:
 notifications:
   email: false
 after_success:
+  - julia --project -e '@info "Running examples"' && julia --project examples/examples.jl
   - julia -e 'using Pkg; Pkg.add("Coverage"); using Coverage; Codecov.submit(process_folder())'
 
 branches:
