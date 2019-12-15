@@ -1,0 +1,12 @@
+name = "docs"
+uuid = "249a70f1-3818-4b5f-8b98-75cc81cd6ee2"
+authors = ["Mathieu Besançon <mathieu.besancon@gmail.com>"]
+version = "0.1.0"
+
+[deps]
+Documenter = "e30172f5-a6a5-5a46-863b-614d45cd2de4"
+HashDicts = "84bb1d4e-47b1-4559-9fd7-e024cdd77467"
+
+[compat]
+julia = "1"
+Documenter = "0.24"

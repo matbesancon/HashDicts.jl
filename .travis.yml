@@ -25,20 +25,10 @@ jobs:
   - julia: nightly
   fast_finish: true
   include:
-    - stage: "Examples"
+    - stage: "Documentation"
       julia: 1.0
       os: linux
       script:
-        - julia --project -e '@info "Running examples"'
-        - julia --project examples/examples.jl
-    # - stage: "Documentation"
-      # julia: 1.0
-      # os: linux
-      # script:
-        # - julia --project=perf/ -e 'using Pkg; Pkg.develop(PackageSpec(path=pwd()));
-                                               # Pkg.instantiate()'
-        # - julia --project=perf/ perf/samplers.jl
-        # - julia --project=docs/ -e 'using Pkg; Pkg.develop(PackageSpec(path=pwd()));
-                                               # Pkg.instantiate()'
-        # - julia --project=docs/ docs/make.jl
-      # after_success: skip
+        - julia --project=docs/ -e 'using Pkg; Pkg.develop(PackageSpec(path=pwd())); Pkg.instantiate()'
+        - julia --project=docs/ docs/make.jl
+      after_success: skip
