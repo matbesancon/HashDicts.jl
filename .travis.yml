@@ -30,6 +30,7 @@ jobs:
       julia: 1.0
       os: linux
       script:
+        - julia --project -e '@info "Running examples"'
         - julia --project examples/examples.jl
     # - stage: "Documentation"
       # julia: 1.0
