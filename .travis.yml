@@ -7,12 +7,10 @@ julia:
   - 1.0
   - 1.3
   - nightly
-matrix:
-  allow_failures:
-    - julia: nightly
-  fast_finish: true
+
 notifications:
   email: false
+
 after_success:
   - julia --project -e '@info "Running examples"' && julia --project examples/examples.jl
   - julia -e 'using Pkg; Pkg.add("Coverage"); using Coverage; Codecov.submit(process_folder())'
